@@ -1,0 +1,191 @@
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	<meta name="description" content=""/>
+	<meta name="keywords" content="" />
+	<meta name="author" content="" />
+	<link rel="stylesheet" type="text/css" href="static/registerstyle.css" media="screen" />
+	<title>Signin System</title>
+</head>
+<script>setInterval("document.getElementById('time').innerHTML=new Date().toLocaleString();", 1000);</script>
+
+<body id="top">
+<div id="network">
+	<div class="center-wrapper">
+		<div class="left"><span id="time"></span> <span class="text-separator">|</span> </div>
+		<div class="right">
+			<ul class="tabbed" id="network-tabs">
+				<li class="current-tab"></li>
+				<li><a href="https://jwc.seu.edu.cn">教务处</a></li>
+				<li><a href="http://202.119.23.199">srtp</a></li>
+			</ul>
+			<div class="clearer">&nbsp;</div>
+		</div>
+		<div class="clearer">&nbsp;</div>
+	</div>
+</div>
+<div id="site">
+	<div class="center-wrapper">
+		<div id="header">
+			<div class="clearer">&nbsp;</div>								
+		    <div id="navigation">			
+				<div id="sub-nav">
+					<ul class="tabbed">
+						<li class="current-tab"><a href="#">                </a></li>
+						<li><a id="logbtn" href="#log" >用户注册</a></li>
+					</ul>
+					<div class="clearer">&nbsp;</div>
+				</div>
+			</div>			
+			<div id="log">
+			</div>
+			<div></div>
+			<div></div>
+			<div id="changepass" align="center">
+			<!-- <form method='POST'> -->
+				<p></p>
+				<!-- <form method='POST'>  -->
+					<p>邮箱:
+					<input type="text" name="mail" id="mail" style="border:1px solid #000"></input>
+					</p>
+					<p></p>
+					<p><button id="sendcode" onclick="send(this)">发送验证码</button>
+					</p>
+			    <!-- </form> -->
+				<p>验证码:
+				<input type="text" name="vcode" id="vcode" style="border:1px solid #000">
+				</p>
+				<p></p>
+				<p>用户名:
+				<input type="text" name="uid" id="uid" style="border:1px solid #000">
+				</p>
+				<p></p>
+				<p>密码:
+				<input type='password' name="pwd" id="pwd" style="border:1px solid #000">
+				</p>
+				<button id="send" onclick="send(this)">注册</button>
+				</p>				  
+			<!-- </form> -->
+			</div>
+		</div>		
+	</div>
+</div>
+<script>
+	function createRequest()
+	{
+		try
+		{
+			request = new XMLHttpRequest(); //For火狐，谷歌等浏览器
+		}
+		catch (tryMS)
+		{
+			try
+			{
+				request = new ActiveXObject("Msxm12.XMLHTTP"); //For使用微软Msxm12.XMLHTTP库的浏览器
+			}
+			catch (otherMS)
+			{
+				try
+				{
+					request = new ActiveXObject("Microsoft.XMLHTTP"); //For使用微软Microsoft.XMLHTTP库的浏览器
+				}
+				catch (failed)
+				{
+					request = null;
+				}
+			}
+		}
+		return request;
+	}
+
+	function log()
+	{
+		document.getElementById("changepass").setAttribute("display","none");
+	}
+
+	function cgps()
+	{
+		document.getElementById("log").setAttribute("display","none");
+	}
+	
+	function responses()
+	{
+		if (request.readyState == 4)//服务器处理结束
+		{
+			if (request.status == 200)//一切正常
+			{
+				switch(request.responseText)
+				{
+					case "null":
+					  alert("Invalid input");
+					  break;
+					case "sent":
+					  alert("Code sent");
+					  break;
+					case "resend":
+					  alert("Resend code");
+					  break;
+					case "exist":
+					  alert("ID already exists");
+					  break;
+					case "checkmail":
+					  alert("Invalid email address");
+					  break;
+					case "regok":
+					  alert("Success");
+					  window.location.href=".."
+					  break;
+					default:
+					  alert("error");
+					  break;    
+				}
+			}
+			else
+			{
+				alert(request.status);
+			}
+		}
+	}
+
+	
+	function send(element)
+	{
+		request=createRequest();
+		if (request == null)
+		{
+			alert("Unable to create request");
+		}
+		else
+		{
+			var uid=document.getElementById("uid").value;
+			var mail=document.getElementById("mail").value;
+			var vcode=document.getElementById("vcode").value;
+			var pwd=document.getElementById("pwd").value;
+			var id = element.id;
+			var sd;
+			var formData = new FormData();
+			request.open("POST", "", true);
+			request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			request.onreadystatechange = responses;	
+			if(id=='send')
+			{
+				formData.append('uid', uid);
+			    formData.append('pwd', pwd);
+				sd='2';
+				formData.append('sd', sd);
+				formData.append('vcode', sd);
+				request.send('uid='+uid+'&pwd='+pwd+'&sd='+sd+'&mail='+mail+'&vcode='+vcode);
+			}
+			else
+			{
+				sd='1';
+				formData.append('sd', sd);
+				request.send('mail='+mail+'&sd='+sd);
+			}		
+            //formData.append('mail',mail);
+			//request.send(formData);
+		}
+	}
+</script>
+</body>
+</html>

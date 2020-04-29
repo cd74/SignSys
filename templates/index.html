@@ -1,0 +1,262 @@
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	<meta name="description" content=""/>
+	<meta name="keywords" content="" />
+	<meta name="author" content="" />
+	<link href="/static/indexstyle.css" rel="stylesheet" type="text/css" />
+	<title>Signin System</title>
+</head>
+<script>
+setInterval("document.getElementById('time').innerHTML=new Date().toLocaleString();", 1000);</script>
+
+<body id="top">
+<div id="network">
+	<div class="center-wrapper">
+		<div class="left"><span id="time"></span> <span class="text-separator">|</span> <span class="quiet"></span></div>
+		<div class="right">
+			<ul class="tabbed" id="network-tabs">
+				<li class="current-tab"></li>
+				<li><a href="https://jwc.seu.edu.cn">教务处</a></li>
+				<li><a href="http://202.119.23.199">srtp</a></li>
+			</ul>
+			<div class="clearer">&nbsp;</div>
+		</div>
+		<div class="clearer">&nbsp;</div>
+	</div>
+</div>
+<div id="site">
+	<div class="center-wrapper">
+		<div id="header">
+			<div class="clearer">&nbsp;</div>			
+			<table style="border-collapse:collapse">
+			<tr>
+				<td>
+				<h1><a href="#" style="text-decoration:none">签到系统</a></h1>
+				</td>
+				<td>
+				<div id="logform" align="right">
+				<p></p>
+				<p><font size="2">用户名:</font>
+				<input type="text" name="uid" id="uid" style="border:5px solid:#000000">
+				</p>
+				<p><font size="2">密码:</font>
+				<input type='password' name="pwd" id="pwd" style="border:5px solid:#000000">
+				</p>
+				<p><button id="login" onclick="send(this)">登录</button>
+				<a href="register" >注册</a>
+				<a href="javascript:void(0)" onclick="pwd()">找回密码</a>
+				</p>				  
+				</div>
+				</td>
+			</tr>
+			</table>					
+		    <div id="navigation">			
+				<div id="sub-nav">
+					<ul class="tabbed">
+						<li class="current-tab"><a href="#">                </a></li>
+						<li><a id="snap" href="javascript:void(0);" οnclick="catchimg(1)">识别签到</a></li>
+						<li><a id="inface" href="javascript:void(0);" οnclick="catchimg(0)">录入人脸</a></li>
+					</ul>
+					<div class="clearer">&nbsp;</div>
+				</div>
+			</div>
+			<canvas id="canvas" width="480" height="360" style="display:none"></canvas>
+			<table id="main">
+				<tr>
+					<td><video id="video" width="480" height="360" autoplay></video></td>
+					<td><img id="snapimg" width="480" height="360"></img></td>
+				</tr>
+			</table>
+		</div>		
+	</div>
+</div>
+<script>
+	function createRequest()
+	{
+		try
+		{
+			request = new XMLHttpRequest(); //For火狐，谷歌等浏览器
+		}
+		catch (tryMS)
+		{
+			try
+			{
+				request = new ActiveXObject("Msxm12.XMLHTTP"); //For使用微软Msxm12.XMLHTTP库的浏览器
+			}
+			catch (otherMS)
+			{
+				try
+				{
+					request = new ActiveXObject("Microsoft.XMLHTTP"); //For使用微软Microsoft.XMLHTTP库的浏览器
+				}
+				catch (failed)
+				{
+					request = null;
+				}
+			}
+		}
+		return request;
+	}
+
+	function catchimg(type)
+	{
+		//alert("!11");
+		var canvas = document.getElementById("canvas"),
+		video = document.getElementById("video");
+		var context = canvas.getContext("2d");
+		context.drawImage(video, 0, 0, 480, 360);
+		var imgData = canvas.toDataURL();
+		document.getElementById("snapimg").src = imgData;
+		uploadPhoto(type); //
+	}
+
+	function newin()
+	{
+		
+	}
+	function uploadPhoto(type)//上传拍照的图片
+	{
+		request = createRequest();
+		if (request == null)
+		{
+			alert("Unable to create request");
+		}
+		else
+		{
+			//alert("request.OK");
+			var base64Data = document.getElementById('snapimg').src;
+			base64Data = base64Data.substr(22);
+			base64Data = base64Data.replace(/\+/g, "%2B"); //对参数中的+号编码，防止丢失
+			var url = "";
+			request.open("POST", url, true);
+			request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			request.onreadystatechange = responses;
+			var formData = new FormData();
+			formData.append('img', base64Data);
+			formData.append('type', type);
+			request.send('img='+base64Data+'&type='+type);
+			//request.send(formData);
+			//alert("send.OK");
+		}
+	}
+
+	function responses()
+	{
+		if (request.readyState == 4)//服务器处理结束
+		{
+			if (request.status == 200)//一切正常
+			{
+				switch(request.responseText)
+				{
+					case "OK":
+					  window.location.href="";
+					  //alert("签到成功");
+					  break;
+					case "login":
+					  alert("Log in first");
+					  break;
+					case "wrong":
+					  alert("wrong ID or password");
+					  break;
+					case "exist":
+					  alert("ID already exists");
+					  break;
+					case "logok":
+					  window.location.href="";
+					  break;
+					case "sendfail":
+					  alert("发送失败");
+					  //window.location.href=""
+					  break;
+					case "sent":
+					  alert("密码已发送邮箱");
+					  break;
+					case "wronguid":
+					  alert("用户名错误");
+					  break;
+					default:
+					  alert("error");
+					  break;    
+				}
+			}
+			else
+			{
+				alert(request.status);
+			}
+		}
+	}
+
+	// Grab elements, create settings, etc.
+	var canvas = document.getElementById("canvas"),
+	context = canvas.getContext("2d"),
+	video = document.getElementById("video"),
+	videoObj = { "video": true },
+	errBack = function (error)
+	{
+		console.log("Video capture error: ", error.code);
+	};
+
+	document.getElementById("snap").setAttribute('onclick','catchimg(1)');
+	document.getElementById("inface").setAttribute('onclick','catchimg(0)');
+	
+	//navigator.getUserMedia这个写法在Opera中好像是navigator.getUserMedianow
+	if (navigator.getUserMedia) {
+		navigator.getUserMedia(videoObj, function (stream) {
+		video.srcObject = stream;
+		video.play();
+		}, errBack);
+	} 
+	else if (navigator.webkitGetUserMedia) {
+		navigator.webkitGetUserMedia(videoObj, function (stream) {
+		video.src = window.webkitURL.createObjectURL(stream);
+		video.play();
+	}, errBack);
+	}
+
+	
+	function pwd(element)
+	{
+		request=createRequest();
+		if (request == null)
+		{
+			alert("Unable to create request");
+		}
+		else
+		{
+			var uid=document.getElementById("uid").value;
+			var url = 'findpass'
+			request.open("POST", url, true);
+			request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			request.onreadystatechange = responses;
+			//var formData = new FormData();
+			//formData.append('uid', uid);
+			//formData.append('pwd', pwd);
+			request.send('uid='+uid+'&pwd='+pwd);
+		}
+	}
+
+	function send(element)
+	{
+		request=createRequest();
+		if (request == null)
+		{
+			alert("Unable to create request");
+		}
+		else
+		{
+			var uid=document.getElementById("uid").value;
+			var pwd=document.getElementById("pwd").value;
+			var url = element.id;
+			request.open("POST", url, true);
+			request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			request.onreadystatechange = responses;
+			//var formData = new FormData();
+			//formData.append('uid', uid);
+			//formData.append('pwd', pwd);
+			request.send('uid='+uid+'&pwd='+pwd);
+		}
+	}
+</script>
+</body>
+</html>
